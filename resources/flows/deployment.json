@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "reference_size": [
+    1280,
+    720
+  ],
+  "units": [
+    {
+      "id": "valkyrie",
+      "label": "武神",
+      "kind": "troop",
+      "portrait": {
+        "template": "templates/unit_valkyrie.png",
+        "roi": [
+          75,
+          570,
+          580,
+          147
+        ],
+        "threshold": 0.9
+      },
+      "counter_offset": [
+        21,
+        -48,
+        52,
+        26
+      ]
+    }
+  ],
+  "counter_prefix": "templates/counter_prefix.png",
+  "counter_zero": "templates/counter_zero.png",
+  "deployment_blocked": "templates/deployment_blocked.png"
+}

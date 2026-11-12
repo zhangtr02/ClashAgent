@@ -1,0 +1,421 @@
+{
+  "version": 1,
+  "id": "regular_battle",
+  "label": "固定兵表刷资源循环",
+  "reference_size": [
+    1280,
+    720
+  ],
+  "locale": "zh-CN",
+  "stable_frames": 2,
+  "poll_interval": 0.2,
+  "unknown_timeout": 8,
+  "max_actions": 8,
+  "start": [
+    "village",
+    "regular_battle",
+    "army_ready",
+    "matchmaking",
+    "opponent_found",
+    "builder_base",
+    "inactive_dialog",
+    "battle_active",
+    "battle_result",
+    "battle_active_red",
+    "rating_prompt"
+  ],
+  "nodes": [
+    {
+      "id": "village",
+      "label": "主世界村庄",
+      "anchors": [
+        {
+          "id": "village_attack",
+          "template": "templates/village_attack.png",
+          "roi": [
+            10,
+            573,
+            140,
+            110
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "village_trophy",
+          "template": "templates/village_trophy.png",
+          "roi": [
+            10,
+            155,
+            90,
+            82
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "village_attack"
+      },
+      "next": [
+        "regular_battle"
+      ],
+      "timeout": 10,
+      "max_attempts": 2
+    },
+    {
+      "id": "regular_battle",
+      "label": "常规战入口",
+      "anchors": [
+        {
+          "id": "regular_title",
+          "template": "templates/regular_title.png",
+          "roi": [
+            158,
+            434,
+            120,
+            61
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "regular_search",
+          "template": "templates/regular_search.png",
+          "roi": [
+            152,
+            490,
+            135,
+            61
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "multiplayer",
+          "template": "templates/multiplayer.png",
+          "roi": [
+            113,
+            31,
+            118,
+            56
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "regular_search"
+      },
+      "next": [
+        "army_ready",
+        "matchmaking",
+        "opponent_found",
+        "battle_active",
+        "battle_result",
+        "battle_active_red"
+      ],
+      "timeout": 12,
+      "max_attempts": 2
+    },
+    {
+      "id": "army_ready",
+      "label": "军队确认",
+      "anchors": [
+        {
+          "id": "army_title",
+          "template": "templates/army_title.png",
+          "roi": [
+            200,
+            50,
+            118,
+            58
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "army_attack",
+          "template": "templates/army_attack.png",
+          "roi": [
+            1094,
+            613,
+            118,
+            63
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "army_attack"
+      },
+      "next": [
+        "matchmaking",
+        "opponent_found",
+        "battle_active",
+        "battle_result",
+        "battle_active_red"
+      ],
+      "timeout": 60,
+      "max_attempts": 1
+    },
+    {
+      "id": "matchmaking",
+      "label": "正在搜索对手",
+      "algorithm": "clouds",
+      "action": {
+        "type": "wait"
+      },
+      "next": [
+        "opponent_found",
+        "battle_active",
+        "battle_result",
+        "battle_active_red"
+      ],
+      "timeout": 60
+    },
+    {
+      "id": "opponent_found",
+      "label": "已找到对手",
+      "anchors": [
+        {
+          "id": "opponent_next",
+          "template": "templates/opponent_next.png",
+          "roi": [
+            1132,
+            471,
+            130,
+            59
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "opponent_loot",
+          "template": "templates/opponent_loot.png",
+          "roi": [
+            42,
+            52,
+            176,
+            53
+          ],
+          "threshold": 0.9,
+          "text_mask": true
+        },
+        {
+          "id": "opponent_countdown",
+          "template": "templates/opponent_countdown.png",
+          "roi": [
+            567,
+            3,
+            144,
+            46
+          ],
+          "threshold": 0.9,
+          "text_mask": true
+        }
+      ],
+      "action": {
+        "type": "complete"
+      },
+      "message": "已找到对手，进入投放阶段"
+    },
+    {
+      "id": "builder_base",
+      "label": "夜世界 / 建筑大师基地",
+      "anchors": [
+        {
+          "id": "builder_attack",
+          "template": "templates/builder_attack.png",
+          "roi": [
+            9,
+            573,
+            144,
+            110
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "builder_badge",
+          "template": "templates/builder_badge.png",
+          "roi": [
+            4,
+            150,
+            102,
+            92
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "pause"
+      },
+      "message": "当前在夜世界，请切回主世界村庄后继续"
+    },
+    {
+      "id": "inactive_dialog",
+      "label": "游戏因闲置断开连接",
+      "anchors": [
+        {
+          "id": "inactive_title",
+          "template": "templates/inactive_title.png",
+          "roi": [
+            317,
+            279,
+            128,
+            58
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "inactive_reload",
+          "template": "templates/inactive_reload.png",
+          "roi": [
+            317,
+            395,
+            131,
+            50
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "pause"
+      },
+      "message": "游戏已因闲置断线；请点击重新载入，回到村庄后继续"
+    },
+    {
+      "id": "battle_active",
+      "label": "战斗进行中",
+      "anchors": [
+        {
+          "id": "battle_timer",
+          "template": "templates/battle_timer.png",
+          "roi": [
+            555,
+            6,
+            162,
+            41
+          ],
+          "threshold": 0.9,
+          "text_mask": true
+        },
+        {
+          "id": "battle_loot",
+          "template": "templates/opponent_loot.png",
+          "roi": [
+            42,
+            52,
+            176,
+            53
+          ],
+          "threshold": 0.9,
+          "text_mask": true
+        }
+      ],
+      "action": {
+        "type": "complete"
+      },
+      "message": "检测到战斗进行中"
+    },
+    {
+      "id": "battle_result",
+      "label": "战斗结算",
+      "anchors": [
+        {
+          "id": "result_return",
+          "template": "templates/result_return.png",
+          "roi": [
+            610,
+            600,
+            65,
+            44
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "result_banner",
+          "template": "templates/result_banner.png",
+          "roi": [
+            840,
+            160,
+            70,
+            80
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "complete"
+      },
+      "message": "检测到战斗结算"
+    },
+    {
+      "id": "battle_active_red",
+      "label": "战斗进行中（倒计时警示）",
+      "anchors": [
+        {
+          "id": "battle_timer_red",
+          "template": "templates/battle_timer_red.png",
+          "roi": [
+            555,
+            6,
+            162,
+            41
+          ],
+          "threshold": 0.9,
+          "mask": "templates/battle_timer_red_mask.png"
+        },
+        {
+          "id": "battle_loot",
+          "template": "templates/opponent_loot.png",
+          "roi": [
+            42,
+            52,
+            176,
+            53
+          ],
+          "threshold": 0.9,
+          "text_mask": true
+        }
+      ],
+      "action": {
+        "type": "complete"
+      },
+      "message": "检测到战斗进行中"
+    },
+    {
+      "id": "rating_prompt",
+      "label": "游戏评分提示",
+      "anchors": [
+        {
+          "id": "rating_title",
+          "template": "templates/rating_title.png",
+          "roi": [
+            320,
+            284,
+            389,
+            51
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "rating_later",
+          "template": "templates/rating_later.png",
+          "roi": [
+            326,
+            400,
+            61,
+            42
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "rating_later"
+      },
+      "next": [
+        "village"
+      ],
+      "timeout": 10,
+      "max_attempts": 2
+    }
+  ]
+}

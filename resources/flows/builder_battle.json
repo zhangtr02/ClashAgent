@@ -1,0 +1,313 @@
+{
+  "version": 1,
+  "id": "builder_battle",
+  "label": "夜世界女巫刷金币",
+  "reference_size": [
+    1280,
+    720
+  ],
+  "start": [
+    "builder_base"
+  ],
+  "stable_frames": 2,
+  "poll_interval": 0.12,
+  "unknown_timeout": 10,
+  "max_actions": 2,
+  "nodes": [
+    {
+      "id": "builder_base",
+      "label": "夜世界 / 建筑大师基地",
+      "anchors": [
+        {
+          "id": "builder_attack",
+          "template": "templates/builder_attack.png",
+          "roi": [
+            9,
+            573,
+            144,
+            110
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "builder_badge",
+          "template": "templates/builder_badge.png",
+          "roi": [
+            4,
+            150,
+            102,
+            92
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "builder_attack"
+      },
+      "message": "当前在夜世界，请切回主世界村庄后继续",
+      "next": [
+        "builder_army"
+      ],
+      "timeout": 8,
+      "max_attempts": 1
+    },
+    {
+      "id": "village",
+      "label": "主世界村庄",
+      "anchors": [
+        {
+          "id": "village_attack",
+          "template": "templates/village_attack.png",
+          "roi": [
+            10,
+            573,
+            140,
+            110
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "village_trophy",
+          "template": "templates/village_trophy.png",
+          "roi": [
+            10,
+            155,
+            90,
+            82
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "pause"
+      },
+      "next": [],
+      "timeout": 10,
+      "max_attempts": 2,
+      "message": "请手动进入建筑大师基地后开始夜世界刷资源。"
+    },
+    {
+      "id": "inactive_dialog",
+      "label": "游戏因闲置断开连接",
+      "anchors": [
+        {
+          "id": "inactive_title",
+          "template": "templates/inactive_title.png",
+          "roi": [
+            317,
+            279,
+            128,
+            58
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "inactive_reload",
+          "template": "templates/inactive_reload.png",
+          "roi": [
+            317,
+            395,
+            131,
+            50
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "pause"
+      },
+      "message": "游戏已因闲置断线；请点击重新载入，回到村庄后继续"
+    },
+    {
+      "id": "rating_prompt",
+      "label": "游戏评分提示",
+      "anchors": [
+        {
+          "id": "rating_title",
+          "template": "templates/rating_title.png",
+          "roi": [
+            320,
+            284,
+            389,
+            51
+          ],
+          "threshold": 0.9
+        },
+        {
+          "id": "rating_later",
+          "template": "templates/rating_later.png",
+          "roi": [
+            326,
+            400,
+            61,
+            42
+          ],
+          "threshold": 0.9
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "rating_later"
+      },
+      "next": [
+        "builder_base"
+      ],
+      "timeout": 10,
+      "max_attempts": 2
+    },
+    {
+      "id": "builder_army",
+      "label": "夜世界出战准备",
+      "anchors": [
+        {
+          "id": "attack_title",
+          "template": "builder/attack_title.png",
+          "roi": [
+            584,
+            113,
+            147,
+            61
+          ],
+          "threshold": 0.91,
+          "max_pixel_error": 20
+        },
+        {
+          "id": "find",
+          "template": "builder/find.png",
+          "roi": [
+            860,
+            437,
+            172,
+            77
+          ],
+          "threshold": 0.93,
+          "max_pixel_error": 24
+        }
+      ],
+      "action": {
+        "type": "click",
+        "target": "find"
+      },
+      "next": [
+        "builder_preview",
+        "matchmaking"
+      ],
+      "timeout": 35,
+      "max_attempts": 1
+    },
+    {
+      "id": "builder_preview",
+      "label": "夜世界备战",
+      "anchors": [
+        {
+          "id": "countdown",
+          "template": "builder/countdown.png",
+          "roi": [
+            568,
+            10,
+            142,
+            34
+          ],
+          "threshold": 0.89,
+          "text_mask": true,
+          "max_pixel_error": 30
+        },
+        {
+          "id": "defender",
+          "template": "builder/defender.png",
+          "roi": [
+            58,
+            9,
+            56,
+            33
+          ],
+          "threshold": 0.9,
+          "max_pixel_error": 22
+        }
+      ],
+      "action": {
+        "type": "complete"
+      }
+    },
+    {
+      "id": "builder_active",
+      "label": "夜世界战斗中",
+      "anchors": [
+        {
+          "id": "battle_timer",
+          "template": "builder/battle_timer.png",
+          "roi": [
+            550,
+            10,
+            180,
+            34
+          ],
+          "threshold": 0.89,
+          "text_mask": true,
+          "max_pixel_error": 30
+        },
+        {
+          "id": "defender",
+          "template": "builder/defender.png",
+          "roi": [
+            58,
+            9,
+            56,
+            33
+          ],
+          "threshold": 0.9,
+          "max_pixel_error": 22
+        }
+      ],
+      "action": {
+        "type": "complete"
+      }
+    },
+    {
+      "id": "builder_result",
+      "label": "夜世界结算",
+      "anchors": [
+        {
+          "id": "return",
+          "template": "builder/return.png",
+          "roi": [
+            546,
+            569,
+            183,
+            79
+          ],
+          "threshold": 0.94,
+          "max_pixel_error": 20
+        },
+        {
+          "id": "reward_label",
+          "template": "builder/reward_label.png",
+          "roi": [
+            772,
+            375,
+            86,
+            44
+          ],
+          "threshold": 0.87,
+          "max_pixel_error": 32
+        }
+      ],
+      "action": {
+        "type": "complete"
+      }
+    },
+    {
+      "id": "matchmaking",
+      "label": "正在搜索对手",
+      "algorithm": "clouds",
+      "action": {
+        "type": "wait"
+      },
+      "next": [
+        "builder_preview"
+      ],
+      "timeout": 60
+    }
+  ]
+}
