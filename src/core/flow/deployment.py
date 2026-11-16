@@ -75,6 +75,24 @@ class CardDetector:
         self.previous_slots = None
 
     @staticmethod
+    def _has_equipment_badge(badge):
+        white = ((badge[:, :, 1] < 85) & (badge[:, :, 2] > 150)).astype(np.uint8)
+        closed = cv2.morphologyEx(white[:39, :39], cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+        _, _, pieces, _ = cv2.connectedComponentsWithStats(closed)
+        if any(20 <= w <= 37 and 20 <= h <= 37 and abs(w-h) <= 8 and area >= 100
+               for _, _, w, h, area in pieces[1:]):
+            return True
+
+        # Bright portrait pixels can join the badge after closing the mask.
+        # In that case, use the square interior enclosed by its dark outline.
+        interior = (badge[:, :, 2] >= 65).astype(np.uint8)
+        _, _, pieces, _ = cv2.connectedComponentsWithStats(interior, connectivity=4)
+        return any(2 <= x <= 8 and 2 <= y <= 20 and 27 <= w <= 35 and 27 <= h <= 35
+                   and abs(w-h) <= 4 and area >= w*h*.75
+                   and float(white[y:y+h, x:x+w].mean()) >= .2
+                   for x, y, w, h, area in pieces[1:])
+
+    @staticmethod
     def hero_slots(pixels):
         """Purple hero frames plus a square equipment badge; no hero-name list."""
         hsv = cv2.cvtColor(pixels, cv2.COLOR_BGR2HSV)
@@ -87,12 +105,7 @@ class CardDetector:
             x, y, w, h = int(x+75), int(y+560), int(w), int(h)
             if not (45 <= w <= 115 and 85 <= h <= 150 and y+h >= 700):
                 continue
-            badge = hsv[y+1:y+40, x+1:x+40]
-            white = ((badge[:, :, 1] < 85) & (badge[:, :, 2] > 150)).astype(np.uint8)
-            white = cv2.morphologyEx(white, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
-            _, _, pieces, _ = cv2.connectedComponentsWithStats(white)
-            if not any(20 <= bw <= 37 and 20 <= bh <= 37 and abs(bw-bh) <= 8 and area >= 100
-                       for _, _, bw, bh, area in pieces[1:]):
+            if not CardDetector._has_equipment_badge(hsv[y+1:y+51, x+1:x+45]):
                 continue
             slots.append(Region(x, y, w, h))
         return tuple(sorted(slots, key=lambda r: r.x))
