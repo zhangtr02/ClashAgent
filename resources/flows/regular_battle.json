@@ -10,7 +10,7 @@
   "stable_frames": 2,
   "poll_interval": 0.2,
   "unknown_timeout": 8,
-  "max_actions": 8,
+  "max_actions": 32,
   "start": [
     "village",
     "regular_battle",
@@ -22,6 +22,8 @@
     "battle_active",
     "battle_result",
     "battle_active_red",
+    "treasure_open",
+    "treasure_reward",
     "rating_prompt"
   ],
   "nodes": [
@@ -32,6 +34,7 @@
         {
           "id": "village_attack",
           "template": "templates/village_attack.png",
+          "alternatives": ["templates/village_attack_chest.png"],
           "roi": [
             10,
             573,
@@ -69,33 +72,36 @@
         {
           "id": "regular_title",
           "template": "templates/regular_title.png",
+          "alternatives": ["templates/regular_title_chest.png"],
           "roi": [
-            158,
-            434,
-            120,
-            61
+            140,
+            430,
+            145,
+            72
           ],
           "threshold": 0.9
         },
         {
           "id": "regular_search",
           "template": "templates/regular_search.png",
+          "alternatives": ["templates/regular_search_chest.png"],
           "roi": [
-            152,
-            490,
-            135,
-            61
+            130,
+            480,
+            170,
+            80
           ],
           "threshold": 0.9
         },
         {
           "id": "multiplayer",
           "template": "templates/multiplayer.png",
+          "alternatives": ["templates/multiplayer_chest.png"],
           "roi": [
-            113,
-            31,
-            118,
-            56
+            100,
+            30,
+            135,
+            62
           ],
           "threshold": 0.9
         }
@@ -157,6 +163,52 @@
       "max_attempts": 1
     },
     {
+      "id": "treasure_open",
+      "label": "开启战斗宝箱",
+      "anchors": [
+        {
+          "id": "treasure_tap",
+          "template": "templates/treasure_tap.png",
+          "roi": [570, 150, 130, 60],
+          "threshold": 0.9
+        },
+        {
+          "id": "treasure_pedestal",
+          "template": "templates/treasure_pedestal.png",
+          "roi": [430, 465, 95, 75],
+          "threshold": 0.93
+        }
+      ],
+      "action": {"type": "click", "target": "treasure_tap"},
+      "next": ["treasure_open", "treasure_reward", "village", "matchmaking"],
+      "timeout": 15,
+      "retry_interval": 2.2,
+      "max_attempts": 5
+    },
+    {
+      "id": "treasure_reward",
+      "label": "领取宝箱奖励",
+      "anchors": [
+        {
+          "id": "treasure_continue",
+          "template": "templates/treasure_continue.png",
+          "roi": [580, 595, 130, 65],
+          "threshold": 0.9
+        },
+        {
+          "id": "treasure_room",
+          "template": "templates/treasure_room.png",
+          "roi": [980, 170, 100, 110],
+          "threshold": 0.93
+        }
+      ],
+      "action": {"type": "click", "target": "treasure_continue"},
+      "next": ["treasure_open", "village", "matchmaking"],
+      "timeout": 15,
+      "retry_interval": 2.2,
+      "max_attempts": 2
+    },
+    {
       "id": "matchmaking",
       "label": "正在搜索对手",
       "algorithm": "clouds",
@@ -164,6 +216,9 @@
         "type": "wait"
       },
       "next": [
+        "village",
+        "treasure_open",
+        "treasure_reward",
         "opponent_found",
         "battle_active",
         "battle_result",
@@ -189,11 +244,12 @@
         {
           "id": "opponent_loot",
           "template": "templates/opponent_loot.png",
+          "alternatives": ["templates/opponent_gold.png"],
           "roi": [
-            42,
+            20,
             52,
-            176,
-            53
+            200,
+            75
           ],
           "threshold": 0.9,
           "text_mask": true
@@ -299,11 +355,12 @@
         {
           "id": "battle_loot",
           "template": "templates/opponent_loot.png",
+          "alternatives": ["templates/opponent_gold.png"],
           "roi": [
-            42,
+            20,
             52,
-            176,
-            53
+            200,
+            75
           ],
           "threshold": 0.9,
           "text_mask": true
@@ -321,11 +378,12 @@
         {
           "id": "result_return",
           "template": "templates/result_return.png",
+          "alternatives": ["templates/result_claim_reward.png"],
           "roi": [
-            610,
-            600,
-            65,
-            44
+            540,
+            595,
+            145,
+            55
           ],
           "threshold": 0.9
         },
@@ -365,11 +423,12 @@
         {
           "id": "battle_loot",
           "template": "templates/opponent_loot.png",
+          "alternatives": ["templates/opponent_gold.png"],
           "roi": [
-            42,
+            20,
             52,
-            176,
-            53
+            200,
+            75
           ],
           "threshold": 0.9,
           "text_mask": true

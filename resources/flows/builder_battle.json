@@ -59,6 +59,7 @@
         {
           "id": "village_attack",
           "template": "templates/village_attack.png",
+          "alternatives": ["templates/village_attack_chest.png"],
           "roi": [
             10,
             573,

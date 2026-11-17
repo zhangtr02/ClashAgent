@@ -152,8 +152,16 @@ class CardDetector:
             if not (x >= 3 and x+w <= card.width-3 and w >= card.width*.65
                     and 3 <= h <= 14 and area >= w*2 and top+y+h <= card.y-6):
                 continue
-            border = gray[max(0, y-5):y, x:x+w]
-            if border.size and int(np.sum(np.mean(border < 80, axis=1) >= .8)) >= 2:
+            # Equipment can leave only one dark row above the health bar.
+            # Confirm its frame on both sides of the fill, close to the bar.
+            above = gray[max(0, y-5):y, x:x+w]
+            below = gray[y+h:y+h+2, x:x+w]
+            if not above.size:
+                continue
+            dark_rows = np.mean(above < 80, axis=1) >= .8
+            if (np.count_nonzero(dark_rows) >= 2
+                    or (dark_rows[-1] and below.size
+                        and float(np.mean(below < 80, axis=1).max()) >= .8)):
                 return True
         return False
 

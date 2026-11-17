@@ -1,4 +1,5 @@
 import math
+from dataclasses import replace
 
 import cv2
 import numpy as np
@@ -18,6 +19,42 @@ class StateRecognizer:
         self._masks = {}
         self._last_frame = None
         self._last_result = None
+
+    def _match_anchor(self, scaled, anchor):
+        width, height = self.definition.reference_width, self.definition.reference_height
+        template = self.cache.prepare(anchor.png).gray
+        h, w = template.shape
+        profile = TemplateProfile(anchor.name, anchor.name, width, height,
+                                  Region(0, 0, w, h), anchor.roi, anchor.threshold)
+        mask = None
+        if anchor.text_mask or anchor.mask_png:
+            # Compare white glyphs and their immediate outlines;
+            # village scenery behind HUD text changes per opponent.
+            if anchor not in self._masks:
+                self._masks[anchor] = (
+                    (self.cache.prepare(anchor.mask_png).gray > 127).astype(np.uint8) if anchor.mask_png else
+                    cv2.dilate((template > 220).astype(np.uint8), np.ones((3, 3), np.uint8)))
+            mask = self._masks[anchor]
+            if int(mask.sum()) < 5:
+                raise ClashAgentError(f"文字模板 {anchor.name} 缺少可用前景")
+            roi = anchor.roi
+            search = scaled.gray[roi.y:roi.y+roi.height, roi.x:roi.x+roi.width]
+            scores = cv2.matchTemplate(search, template, cv2.TM_SQDIFF_NORMED, mask=mask)
+            scores = np.nan_to_num(scores, nan=1, posinf=1, neginf=1)
+            minimum, _, location, _ = cv2.minMaxLoc(scores)
+            score_value = max(0, 1 - math.sqrt(max(0, minimum)))
+            result = MatchResult(anchor.name, scaled.frame_id,
+                                 Region(roi.x+location[0], roi.y+location[1], w, h),
+                                 score_value, anchor.threshold)
+        else:
+            result = match_template(scaled, profile, anchor.png, cache=self.cache)
+        region = result.region
+        patch = scaled.gray[region.y:region.y + region.height, region.x:region.x + region.width]
+        # Normalized correlation also matches dimmed buttons behind
+        # modal dialogs. Require appearance to agree in brightness.
+        error = np.abs(patch.astype(np.float32) - template.astype(np.float32))
+        pixel_error = float(error[mask > 0].mean() if mask is not None else error.mean())
+        return result.matched and pixel_error <= anchor.max_pixel_error, result
 
     def recognize(self, frame: ScreenFrame) -> Recognition:
         if frame is self._last_frame:
@@ -41,40 +78,17 @@ class StateRecognizer:
             else:
                 valid, score = True, 1.0
                 for anchor in node.anchors:
-                    template = self.cache.prepare(anchor.png).gray
-                    h, w = template.shape
-                    profile = TemplateProfile(anchor.name, anchor.name, width, height,
-                                              Region(0, 0, w, h), anchor.roi, anchor.threshold)
-                    mask = None
-                    if anchor.text_mask or anchor.mask_png:
-                        # Compare white glyphs and their immediate outlines;
-                        # village scenery behind HUD text changes per opponent.
-                        if anchor not in self._masks:
-                            self._masks[anchor] = (
-                                (self.cache.prepare(anchor.mask_png).gray > 127).astype(np.uint8) if anchor.mask_png else
-                                cv2.dilate((template > 220).astype(np.uint8), np.ones((3, 3), np.uint8)))
-                        mask = self._masks[anchor]
-                        if int(mask.sum()) < 5:
-                            raise ClashAgentError(f"文字模板 {anchor.name} 缺少可用前景")
-                        roi = anchor.roi
-                        search = scaled.gray[roi.y:roi.y+roi.height, roi.x:roi.x+roi.width]
-                        scores = cv2.matchTemplate(search, template, cv2.TM_SQDIFF_NORMED, mask=mask)
-                        scores = np.nan_to_num(scores, nan=1, posinf=1, neginf=1)
-                        minimum, _, location, _ = cv2.minMaxLoc(scores)
-                        score_value = max(0, 1 - math.sqrt(max(0, minimum)))
-                        result = MatchResult(anchor.name, scaled.frame_id,
-                                             Region(roi.x+location[0], roi.y+location[1], w, h),
-                                             score_value, anchor.threshold)
-                    else:
-                        result = match_template(scaled, profile, anchor.png, cache=self.cache)
+                    anchor_valid, result = self._match_anchor(scaled, anchor)
+                    for png in anchor.alternatives:
+                        if anchor_valid:
+                            break
+                        candidate = replace(anchor, png=png, alternatives=())
+                        candidate_valid, candidate_result = self._match_anchor(scaled, candidate)
+                        if candidate_valid or candidate_result.score > result.score:
+                            anchor_valid, result = candidate_valid, candidate_result
+                    valid = valid and anchor_valid
                     score = min(score, result.score)
                     region = result.region
-                    patch = scaled.gray[region.y:region.y + region.height, region.x:region.x + region.width]
-                    # Normalized correlation also matches dimmed buttons behind
-                    # modal dialogs. Require appearance to agree in brightness.
-                    error = np.abs(patch.astype(np.float32) - template.astype(np.float32))
-                    pixel_error = float(error[mask > 0].mean() if mask is not None else error.mean())
-                    valid = valid and result.matched and pixel_error <= anchor.max_pixel_error
                     sx, sy = frame.width / width, frame.height / height
                     x, y = round(region.x * sx), round(region.y * sy)
                     right = min(frame.width, math.ceil((region.x + region.width) * sx))

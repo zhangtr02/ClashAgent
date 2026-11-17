@@ -69,8 +69,24 @@ def load_flow(path: Path = DEFAULT_FLOW) -> FlowDefinition:
                     mask_png = mask_path.read_bytes()
                     if cache.prepare(mask_png).gray.shape != template.shape or spec.get("text_mask"):
                         raise ValueError("掩码尺寸必须与模板一致，且不能与自动文字掩码同时使用")
+                alternatives = []
+                paths = spec.get("alternatives", [])
+                if not isinstance(paths, list) or len(paths) > 4:
+                    raise ValueError("备用模板必须为最多四项的路径列表")
+                for alternative in paths:
+                    alternative_path = (path.parent / alternative).resolve()
+                    if not alternative_path.is_relative_to(path.parent.resolve()):
+                        raise ValueError("备用模板路径不能超出当前资源目录")
+                    raw = alternative_path.read_bytes()
+                    shape = cache.prepare(raw).gray.shape
+                    if shape[1] > roi.width or shape[0] > roi.height:
+                        raise ValueError("备用模板不能大于搜索区域")
+                    if mask_png and shape != template.shape:
+                        raise ValueError("备用模板尺寸必须与掩码一致")
+                    alternatives.append(raw)
                 anchors.append(Anchor(spec["id"], png, roi, threshold,
-                                      _number(spec, "max_pixel_error", 25, 0, 255), spec.get("text_mask", False), mask_png))
+                                      _number(spec, "max_pixel_error", 25, 0, 255), spec.get("text_mask", False),
+                                      mask_png, tuple(alternatives)))
             if len({anchor.name for anchor in anchors}) != len(anchors):
                 raise ValueError("节点存在重复的识别特征 ID")
             if algorithm == "template" and not anchors:

@@ -98,6 +98,7 @@ class TaskRunner:
                     self.event("state", node.label, recognition, frame)
                 if pending and pending[0] != node.name:
                     self.event("verified", f"已验证进入：{node.label}", recognition, frame)
+                    attempts.pop(pending[0], None)
                     pending = None
                 if node.name == self.home_state and self.before_village and not self.before_village(frame, version):
                     self.control.wait(self.definition.poll_interval)

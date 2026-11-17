@@ -14,6 +14,7 @@ class Anchor:
     max_pixel_error: float = 25
     text_mask: bool = False
     mask_png: bytes | None = field(default=None, repr=False)
+    alternatives: tuple[bytes, ...] = field(default=(), repr=False)
 
 
 @dataclass(frozen=True)

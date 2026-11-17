@@ -119,6 +119,7 @@ class CycleRunner:
         returned_at = None
         return_attempts = 0
         return_last = 0
+        reward_previous = ""
         started = self.control.active_time()
         unknown_since = started
         stable_name, stable_count = "", 0
@@ -208,11 +209,30 @@ class CycleRunner:
                         returned_at = now if returned_at is None else returned_at
                         return_last = now
                         return_attempts += 1
-                        self.state("returning", "正在返回村庄", recognition)
-                        self.event("action", "点击回营，等待新画面确认村庄", recognition)
+                        self.state("returning", "正在处理结算与回村", recognition)
+                        self.event("action", "点击结算按钮，等待奖励或村庄画面", recognition)
                         stable_name, stable_count = "", 0
                 elif now-returned_at > 20:
                     self.control.pause("回营后未能确认村庄，请检查游戏后继续")
+            elif name in ("treasure_open", "treasure_reward"):
+                if not result_seen:
+                    self.control.pause("未确认本场结算，请检查宝箱画面后继续。")
+                    continue
+                node = self.definition.node(name)
+                self.state(name, node.label, recognition)
+                if reward_previous != name:
+                    popup_pending.pop(name, None)
+                    reward_previous = name
+                first, last, attempts = popup_pending.get(name, (now, 0, 0))
+                if now-first > node.timeout:
+                    self.control.pause("宝箱奖励处理超时，请检查后继续。")
+                elif attempts < node.max_attempts and (attempts == 0 or now-last >= node.retry_interval):
+                    r = next(h.region for h in recognition.hits if h.name == node.target)
+                    if self.dispatch(version, r.x+r.width//2, r.y+r.height//2):
+                        popup_pending[name] = (first, now, attempts+1)
+                        self.event("action", node.label, recognition)
+                        returned_at = now
+                        stable_name, stable_count = "", 0
             elif name == "village":
                 if not result_seen:
                     self.control.pause("未识别到本场结算，不能将村庄画面计为一轮完成")
